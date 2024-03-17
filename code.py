@@ -25,6 +25,7 @@ from app_base import AppBase
 from level_app import LevelApp
 from player import PlayerApp
 from net_app import NetGetApp
+from pong_app import PongApp
 
 # Disable wifi so it has time to restart
 use_wifi = os.getenv("USE_WIFI") == "True"
@@ -41,7 +42,7 @@ display.get().show()
 display.printLine("J&M 4EVA", 1)
 
 # Setup Accelerometer
-device = LIS2HH12(i2c)
+imu = LIS2HH12(i2c)
 display.printLine("Accelerometer ready", 2)
 
 # Setup NeoPixels
@@ -62,16 +63,17 @@ display.printLine("Audio ready", 2)
 
 # blue_level = level(device, pixels)
 apps = [
-    ("Level Red", lambda: LevelApp(device, pixels, (64, 0, 0))),
-    ("Level Green", lambda: LevelApp(device, pixels, (0, 64, 0))),
-    ("Level Blue", lambda: LevelApp(device, pixels, (0, 0, 64))),
+    ("Level Red", lambda: LevelApp(imu, pixels, (64, 0, 0))),
+    ("Level Green", lambda: LevelApp(imu, pixels, (0, 64, 0))),
+    ("Level Blue", lambda: LevelApp(imu, pixels, (0, 0, 64))),
     ("Play 2001", lambda: PlayerApp(audio, buttons, display)),
+    ("Pong", lambda: PongApp(imu, audio, buttons, pixels, display.display)),
 ]
 if use_wifi:
     wifi = thankyou_wifi()
     apps.append(("Network", lambda: NetGetApp(wifi, buttons, display)))
 
-app_index = 0
+app_index = 4
 running_app: Optional[AppBase] = None
 
 display.clear()
@@ -79,21 +81,45 @@ display.printLine("Select an app", 1)
 display.printLine(apps[app_index][0], 3)
 
 last_update: float = 0
+soft_reset_start: Optional[float] = None
+
+last_loop_time = 0
+LOOP_PERIOD_SEC = 0.01
 
 while True:
+    # Sleep the necessary amount of time to keep period constant
+    now = time.monotonic()
+    dt = now - last_loop_time
+    if dt < 0.01:
+        time.sleep(LOOP_PERIOD_SEC - dt)
+    last_loop_time = time.monotonic()
+
     buttons.update()
 
     if running_app is not None:
-        dt = time.monotonic() - last_update
+        # Reset check
+        if buttons.A and buttons.B:
+            if soft_reset_start is None:
+                soft_reset_start = time.monotonic()
+            else:
+                dt = time.monotonic() - soft_reset_start
+                if dt >= 5:
+                    running_app.exit()
+                    running_app = None
+
+                    display.printLine("RESET", 1)
+                    time.sleep(2)  # Give time for the user to let go of the buttons
+                    continue
+        else:
+            soft_reset_start = None
+
+        # Calculate app dt
+        now = time.monotonic()
+        dt = now - last_update
+        last_update = now
+
+        # Run app cycle
         running_app.update(dt)
-
-        if buttons.A_pressed:
-            running_app.exit()
-            running_app = None
-
-            display.clear()
-            display.printLine("Select an app", 1)
-            display.printLine(apps[app_index][0], 3)
     else:
         if buttons.Up_pressed:
             app_index = app_index + 1 if app_index + 1 < len(apps) else 0
@@ -107,8 +133,6 @@ while True:
             display.printLine("Running...", 1)
             running_app = apps[app_index][1]()
             last_update = time.monotonic()
-
-    time.sleep(0.01)
 
     # if useWifi:
     #    (ping, strength) = wifi.ping()
