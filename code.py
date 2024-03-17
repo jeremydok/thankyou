@@ -25,6 +25,7 @@ from app_base import AppBase
 from level_app import LevelApp
 from player import PlayerApp
 from net_app import NetGetApp
+from manny_app import manny
 
 # Disable wifi so it has time to restart
 use_wifi = os.getenv("USE_WIFI") == "True"
@@ -66,6 +67,7 @@ apps = [
     ("Level Green", lambda: LevelApp(device, pixels, (0, 64, 0))),
     ("Level Blue", lambda: LevelApp(device, pixels, (0, 0, 64))),
     ("Play 2001", lambda: PlayerApp(audio, buttons, display)),
+    ("Manny app", lambda: manny(device, display, pixels)),
 ]
 if use_wifi:
     wifi = thankyou_wifi()

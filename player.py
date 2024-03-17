@@ -8,7 +8,6 @@ from buttons import Buttons
 from display import Display
 from app_base import AppBase
 
-
 class PlayerApp(AppBase):
     def __init__(
         self, device: audiobusio.I2SOut, buttons: Buttons, display: Display
