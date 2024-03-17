@@ -16,6 +16,12 @@ class thankyou_wifi:
         #printLine(f'Resetting.', 3)
         wifi.radio.enabled = False
         time.sleep(2)
+    
+    def connected(self):
+        return wifi.radio.connected
+
+    def radio(self):
+        return wifi.radio
 
     def connect(self):
         if wifi.radio.enabled:
