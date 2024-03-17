@@ -119,6 +119,8 @@ class PongApp(AppBase):
         self.paddles[0].height = 15
         self.paddles[1].height = 15
 
+        self.velocity_sign = [1, 1]
+
         self.ball = Ball(Point(10, 10))
         self.ball.velocity = Point(50, -20)
 
@@ -126,10 +128,20 @@ class PongApp(AppBase):
         self.winner = None
 
     def check_inputs(self) -> None:
-        if self.buttons.A_pressed:
-            self.paddles[0].velocity.y *= -1
-        if self.buttons.B_pressed:
-            self.paddles[1].velocity.y *= -1
+        self.velocity_sign[0] = -1 if self.buttons.A else 1
+        self.velocity_sign[1] = -1 if self.buttons.B else 1
+
+        self.paddles[0].velocity.y = self.velocity_sign[0] * abs(
+            self.paddles[0].velocity.y
+        )
+        self.paddles[1].velocity.y = self.velocity_sign[1] * abs(
+            self.paddles[1].velocity.y
+        )
+
+        if self.buttons.Up_pressed:
+            self.paddles[1].center.x -= 10
+        if self.buttons.Down_pressed:
+            self.paddles[1].center.x += 10
 
     def check_paddle_collision(self, paddle: Paddle, old_ball_center: Point) -> bool:
         paddle_top = Point(paddle.center.x, paddle.center.y - paddle.height / 2)
@@ -141,8 +153,7 @@ class PongApp(AppBase):
             return
 
         for paddle in self.paddles:
-            if paddle.move(dt):
-                paddle.velocity.y *= -1
+            paddle.move(dt)
 
         old_ball_center = self.ball.center.copy()
         (wall_collision_x, wall_collision_y) = self.ball.move(dt)
