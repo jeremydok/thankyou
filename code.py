@@ -25,6 +25,7 @@ from app_base import AppBase
 from level_app import LevelApp
 from player import PlayerApp
 from net_app import NetGetApp
+from manny_app import manny
 from pong_app import PongApp
 
 # Disable wifi so it has time to restart
@@ -48,7 +49,7 @@ display.printLine("Accelerometer ready", 2)
 # Setup NeoPixels
 pixel_pin = IO4
 num_pixels = 20
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.05, auto_write=True)
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.05, auto_write=False)
 pixels.fill((0, 0, 0))
 pixels.show()
 display.printLine("Pixels ready", 2)
@@ -63,6 +64,7 @@ display.printLine("Audio ready", 2)
 
 # blue_level = level(device, pixels)
 apps = [
+    ("Manny app", lambda: manny(imu, display, buttons, pixels)),
     ("Level Red", lambda: LevelApp(imu, pixels, (64, 0, 0))),
     ("Level Green", lambda: LevelApp(imu, pixels, (0, 64, 0))),
     ("Level Blue", lambda: LevelApp(imu, pixels, (0, 0, 64))),
