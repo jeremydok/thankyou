@@ -48,7 +48,7 @@ display.printLine("Accelerometer ready", 2)
 # Setup NeoPixels
 pixel_pin = IO4
 num_pixels = 20
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.05, auto_write=True)
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.05, auto_write=False)
 pixels.fill((0, 0, 0))
 pixels.show()
 display.printLine("Pixels ready", 2)
@@ -63,11 +63,11 @@ display.printLine("Audio ready", 2)
 
 # blue_level = level(device, pixels)
 apps = [
+    ("Manny app", lambda: manny(device, display, buttons, pixels)),
     ("Level Red", lambda: LevelApp(device, pixels, (64, 0, 0))),
     ("Level Green", lambda: LevelApp(device, pixels, (0, 64, 0))),
     ("Level Blue", lambda: LevelApp(device, pixels, (0, 0, 64))),
     ("Play 2001", lambda: PlayerApp(audio, buttons, display)),
-    ("Manny app", lambda: manny(device, display, pixels)),
 ]
 if use_wifi:
     wifi = thankyou_wifi()
